@@ -154,9 +154,7 @@ function showEmployee() {
     INNER JOIN department ON role.department_id = department.id 
     LEFT OUTER JOIN employee AS manager_ref ON emp.manager_id = manager_ref.id;`;
     connection.query(query, function (err, res) {
-        for (var i = 0; i < res.length; i++) {
-            console.table(res);
-        }
+        console.table(res);
         start();
     });
 }
@@ -179,10 +177,10 @@ function showEmployeeByDept() {
 	LEFT OUTER JOIN employee AS manager_ref ON emp.manager_id = manager_ref.id WHERE ?;`
 
         connection.query(query, [{ "department.name": answer.name }], function (err, res) {
-            for (var i = 0; i < res.length; i++) {
+            //for (var i = 0; i < res.length; i++) {
                 console.table(res);
                 start();
-            }
+            //}
         });
     })
 }
@@ -199,10 +197,10 @@ function showEmployeeByManager() {
 	LEFT OUTER JOIN employee AS manager_ref ON emp.manager_id = manager_ref.id WHERE ?;`
 
         connection.query(query, [{ "manager_ref.first_name": answer.name }], function (err, res) {
-            for (var i = 0; i < res.length; i++) {
+            //for (var i = 0; i < res.length; i++) {
                 console.table(res);
                 start();
-            }
+            //}
         });
     })
 
