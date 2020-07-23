@@ -36,7 +36,8 @@ function start() {
                 "Update Employee",
                 "Update employee role",
                 "Update employee manager",
-                "Remove Employee"
+                "Remove Employee",
+                "Exit"
             ]
         })
         .then(function (answer) {
@@ -64,6 +65,8 @@ function start() {
                     break;
                 case "Remove Employee":
                     removeEmployee();
+                    break;
+                case "Exit":  
                     break;
                 default:
                     console.log("Select a valid CRUD operation");
@@ -136,6 +139,7 @@ function addEmployee() {
                     let insertQuery = "INSERT INTO employee(first_name,last_name,role_id,manager_id) VALUES(?,?,?,?);"
                     connection.query(insertQuery, [answer.fname, answer.lname, selectedRoleId, managerId], function (err, result) {
                         console.log(result.affectedRows, ' rows inserted');
+                        start();
                     })
                 });
 
@@ -177,6 +181,7 @@ function showEmployeeByDept() {
         connection.query(query, [{ "department.name": answer.name }], function (err, res) {
             for (var i = 0; i < res.length; i++) {
                 console.table(res);
+                start();
             }
         });
     })
@@ -196,6 +201,7 @@ function showEmployeeByManager() {
         connection.query(query, [{ "manager_ref.first_name": answer.name }], function (err, res) {
             for (var i = 0; i < res.length; i++) {
                 console.table(res);
+                start();
             }
         });
     })
@@ -267,6 +273,7 @@ function updateEmployee() {
                             ], function (err, result) {
                                 if (err) throw err;
                                 console.log("Updated", result);
+                                start();
                             });
 
                     });
@@ -289,6 +296,7 @@ function updateEmployee() {
                         ], function (err, result) {
                             if (err) throw err;
                             console.log("Updated", result);
+                            start();
                         });
                     break;
             }
@@ -339,6 +347,7 @@ function updateEmployeeByRole() {
                     ], function (err, result) {
                         if (err) throw err;
                         console.log("Updated", result);
+                        start();
                     });
             });
         });
@@ -365,8 +374,8 @@ function updateEmployeeByManager() {
                 {
                     type: 'list',
                     name: 'changeValue',
-                    message: 'Select a role you want to update to?',
-                    choices: allRoleTitle
+                    message: 'Select the manager you want to update to?',
+                    choices: employeeNames
                 }
             ]).then(function (answer) {
                 //find id of employee
@@ -376,17 +385,21 @@ function updateEmployeeByManager() {
                 });
                 selectedEmpId = selectedEmpId[0].id;
 
-                let selectedRoleId = allRoles.filter(function (r) {
-                    return r.title == answer.changeValue;
+                let selectedManagerId = result.filter(function (emp) {
+                    let fname = emp.first_name + ' ' + emp.last_name;
+                    return fname === answer.changeValue;
                 });
-                selectedRoleId = selectedRoleId[0].id;
+
+                selectedManagerId = selectedManagerId[0].id;
+                console.log(selectedManagerId);
                 let updateNameQuery = `UPDATE employee SET ? WHERE ?;`;
                 connection.query(updateNameQuery,
-                    [{ role_id: selectedRoleId },
+                    [{ manager_id : selectedManagerId },
                     { id: selectedEmpId }
                     ], function (err, result) {
                         if (err) throw err;
                         console.log("Updated", result);
+                        start();
                     });
             });
         });
@@ -394,7 +407,37 @@ function updateEmployeeByManager() {
 }
 
 function removeEmployee() {
-
+    let query = "SELECT * FROM employee";
+    connection.query(query, function (err, result) {
+        if (err) throw err;
+        let employeeNames = result.map(employee => {
+            return (employee.first_name + " " + employee.last_name);
+        });
+        inquirer.prompt(
+            {
+                type:'list',
+                name: 'empName',
+                message: 'Select the employee you want to delete?',
+                choices: employeeNames
+            }
+        ).then(function(answer){
+            console.log(answer);
+            //find employeeId
+            let selectedEmpId = result.filter(function(emp){
+                let name = emp.first_name + ' ' + emp.last_name;
+                return name == answer.empName;
+            });
+            selectedEmpId = selectedEmpId[0].id;
+            console.log(selectedEmpId);
+            if (err) throw err;
+            let delQuery = `DELETE FROM employee WHERE ?;`
+            connection.query(delQuery,[{id:selectedEmpId}],function(err,response){
+                if (err) throw err;
+                console.log('Deleted');
+                start();
+            })
+        })
+    });
 }
 
 
